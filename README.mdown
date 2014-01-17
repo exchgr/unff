@@ -1,0 +1,9 @@
+# Unff.
+
+Holy dang, I follow a lot of Twitter accounts. I need to get rid of some of them, so I don't look like such a spambot.
+
+## Planned Features
+
++ Unfollow inactive accounts.
++ Unfollow too-active accounts.
++ Preview who you're about to unfollow and select accounts you still want to follow.
