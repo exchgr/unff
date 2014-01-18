@@ -7,7 +7,9 @@ package main
 import (
   "fmt"
   "flag"
-  // "github.com/chimeracoder/anaconda"
+  "io/ioutil"
+  "encoding/json"
+  "github.com/chimeracoder/anaconda"
 )
 
 // Options
@@ -20,4 +22,23 @@ var (
 func main() {
   flag.Parse()
   fmt.Printf("inactive: %t\ntooactive: %t\ninteractive: %t\n", *inactive, *tooactive, *interactive)
+
+  getCredentials()
+}
+
+type Keys struct {
+  TW_CONSUMER_KEY, TW_CONSUMER_SECRET string
+}
+
+func getCredentials() {
+  // Read credentials from JSON file and set them in anaconda
+
+  fileData, err := ioutil.ReadFile("credentials.json")
+
+  if err == nil {
+    keys := Keys{}
+    json.Unmarshal(fileData, &keys)
+    anaconda.SetConsumerKey(keys.TW_CONSUMER_KEY)
+    anaconda.SetConsumerSecret(keys.TW_CONSUMER_SECRET)
+  }
 }
