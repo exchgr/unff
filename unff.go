@@ -30,15 +30,27 @@ type Keys struct {
   TW_CONSUMER_KEY, TW_CONSUMER_SECRET string
 }
 
-func getCredentials() {
+func getCredentials() (bool) {
   // Read credentials from JSON file and set them in anaconda
 
   fileData, err := ioutil.ReadFile("credentials.json")
 
-  if err == nil {
-    keys := Keys{}
-    json.Unmarshal(fileData, &keys)
-    anaconda.SetConsumerKey(keys.TW_CONSUMER_KEY)
-    anaconda.SetConsumerSecret(keys.TW_CONSUMER_SECRET)
+  if err != nil {
+    return true
   }
+
+  keys := Keys{}
+  json.Unmarshal(fileData, &keys)
+  anaconda.SetConsumerKey(keys.TW_CONSUMER_KEY)
+  anaconda.SetConsumerSecret(keys.TW_CONSUMER_SECRET)
+
+  // OAuth
+
+  authURL, tempCred, err := anaconda.AuthorizationURL("")
+
+  if err != nil {
+    return true
+  }
+
+  return false // no error
 }
