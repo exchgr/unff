@@ -10,6 +10,7 @@ import (
   "io/ioutil"
   "encoding/json"
   "github.com/chimeracoder/anaconda"
+  "github.com/skratchdot/open-golang/open"
 )
 
 // Options
@@ -17,6 +18,11 @@ var (
   inactive = flag.Bool("inactive", false, "Unfollow inactive accounts")
   tooactive = flag.Bool("tooactive", false, "Unfollow too-active accounts")
   interactive = flag.Bool("interactive", false, "Select which accounts to unfollow")
+)
+
+// Global variables
+var (
+  tempCred *oauth.Credentials
 )
 
 func main() {
@@ -34,10 +40,7 @@ func getCredentials() (bool) {
   // Read credentials from JSON file and set them in anaconda
 
   fileData, err := ioutil.ReadFile("credentials.json")
-
-  if err != nil {
-    return true
-  }
+  if err != nil { return true }
 
   keys := Keys{}
   json.Unmarshal(fileData, &keys)
@@ -46,11 +49,10 @@ func getCredentials() (bool) {
 
   // OAuth
 
-  authURL, tempCred, err := anaconda.AuthorizationURL("")
+  authURL, tempCred, err := anaconda.AuthorizationURL("http://localhost:9000/oauthCallback")
+  if err != nil { return true }
 
-  if err != nil {
-    return true
-  }
+  open.Run(authURL)
 
   return false // no error
 }
