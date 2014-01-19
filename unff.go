@@ -25,6 +25,7 @@ var (
 // Global variables
 var (
   tempCred *oauth.Credentials
+  credentials *oauth.Credentials
 )
 
 func main() {
