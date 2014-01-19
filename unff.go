@@ -9,8 +9,11 @@ import (
   "flag"
   "io/ioutil"
   "encoding/json"
+  "net/http"
+  "html"
   "github.com/chimeracoder/anaconda"
   "github.com/skratchdot/open-golang/open"
+  "github.com/garyburd/go-oauth/oauth"
 )
 
 // Options
@@ -30,8 +33,17 @@ func main() {
   fmt.Printf("inactive: %t\ntooactive: %t\ninteractive: %t\n", *inactive, *tooactive, *interactive)
 
   getCredentials()
+
+  http.HandleFunc("/oauthCallback", func(w http.ResponseWriter, r *http.Request) {
+    body, err := ioutil.ReadAll(r.Body)
+    _ = err
+    fmt.Fprintf(w, "Hello, %v", html.EscapeString(string(body)))
+  })
+
+  http.ListenAndServe(":9000", nil)
 }
 
+// Twitter keys struct for reading from JSON
 type Keys struct {
   TW_CONSUMER_KEY, TW_CONSUMER_SECRET string
 }
@@ -40,7 +52,10 @@ func getCredentials() (bool) {
   // Read credentials from JSON file and set them in anaconda
 
   fileData, err := ioutil.ReadFile("credentials.json")
-  if err != nil { return true }
+  if err != nil {
+    fmt.Printf("cool %v", err)
+    return true
+  }
 
   keys := Keys{}
   json.Unmarshal(fileData, &keys)
@@ -49,9 +64,13 @@ func getCredentials() (bool) {
 
   // OAuth
 
-  authURL, tempCred, err := anaconda.AuthorizationURL("http://localhost:9000/oauthCallback")
-  if err != nil { return true }
+  authURL, tempCred, err := anaconda.AuthorizationURL("")
+  if err != nil {
+    fmt.Printf("cool %v", err)
+    return true
+  }
 
+  _ = tempCred
   open.Run(authURL)
 
   return false // no error
