@@ -10,7 +10,6 @@ import (
   "io/ioutil"
   "encoding/json"
   "net/http"
-  "html"
   "github.com/chimeracoder/anaconda"
   "github.com/skratchdot/open-golang/open"
   "github.com/garyburd/go-oauth/oauth"
@@ -30,21 +29,7 @@ var (
 
 func main() {
   flag.Parse()
-  fmt.Printf("inactive: %t\ntooactive: %t\ninteractive: %t\n", *inactive, *tooactive, *interactive)
-
   getCredentials()
-
-  http.HandleFunc("/oauthCallback", func(w http.ResponseWriter, r *http.Request) {
-    body, err := ioutil.ReadAll(r.Body)
-    if err != nil {
-      fmt.Printf("Error: %v", err)
-      return true
-    }
-
-    fmt.Fprintf(w, "Hello, %v", html.EscapeString(string(body)))
-  })
-
-  http.ListenAndServe(":9000", nil)
 }
 
 // Twitter keys struct for reading from JSON
@@ -74,8 +59,32 @@ func getCredentials() (bool) {
     return true
   }
 
-  _ = tempCred
   open.Run(authURL)
+
+  http.HandleFunc("/oauthCallback", func(w http.ResponseWriter, r *http.Request) {
+    err := r.ParseForm()
+    if err != nil {
+      http.Error(w, fmt.Sprintf("Error! %s\n", err), http.StatusInternalServerError)
+      return
+    }
+
+    verifier := r.Form["oauth_verifier"][0]
+    credentials, vals, err := anaconda.GetCredentials(tempCred, verifier)
+    _ = vals
+    if err != nil {
+      http.Error(w, fmt.Sprintf("Error! %s\n", err), http.StatusInternalServerError)
+      return
+    }
+
+    if credentials == nil {
+      http.Error(w, "Credentials are nil!", http.StatusInternalServerError)
+      return
+    }
+
+    fmt.Fprintf(w, "Success! You can close this and go back to the terminal.")
+  })
+
+  http.ListenAndServe(":9000", nil)
 
   return false // no error
 }
