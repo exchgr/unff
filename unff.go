@@ -36,7 +36,11 @@ func main() {
 
   http.HandleFunc("/oauthCallback", func(w http.ResponseWriter, r *http.Request) {
     body, err := ioutil.ReadAll(r.Body)
-    _ = err
+    if err != nil {
+      fmt.Printf("Error: %v", err)
+      return true
+    }
+
     fmt.Fprintf(w, "Hello, %v", html.EscapeString(string(body)))
   })
 
@@ -53,7 +57,7 @@ func getCredentials() (bool) {
 
   fileData, err := ioutil.ReadFile("credentials.json")
   if err != nil {
-    fmt.Printf("cool %v", err)
+    fmt.Printf("Error: %v", err)
     return true
   }
 
@@ -66,7 +70,7 @@ func getCredentials() (bool) {
 
   authURL, tempCred, err := anaconda.AuthorizationURL("")
   if err != nil {
-    fmt.Printf("cool %v", err)
+    fmt.Printf("Error: %v", err)
     return true
   }
 
