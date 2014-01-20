@@ -26,6 +26,7 @@ var (
 var (
   tempCred *oauth.Credentials
   credentials *oauth.Credentials
+  api *anaconda.TwitterApi
 )
 
 func main() {
@@ -81,6 +82,9 @@ func getCredentials() (bool) {
       http.Error(w, "Credentials are nil!", http.StatusInternalServerError)
       return
     }
+
+    api = anaconda.NewTwitterApi(credentials.Token, credentials.Secret)
+    _=api
 
     fmt.Fprintf(w, "Success! You can close this and go back to the terminal.")
   })
