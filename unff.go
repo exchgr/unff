@@ -10,6 +10,7 @@ import (
   "io/ioutil"
   "encoding/json"
   "net/http"
+  "net/url"
   "github.com/chimeracoder/anaconda"
   "github.com/skratchdot/open-golang/open"
   "github.com/garyburd/go-oauth/oauth"
@@ -26,12 +27,17 @@ var (
 var (
   tempCred *oauth.Credentials
   credentials *oauth.Credentials
+  oAuthDone = make(chan bool)
   api *anaconda.TwitterApi
 )
 
 func main() {
   flag.Parse()
   getCredentials()
+  if <-oAuthDone {
+    api = anaconda.NewTwitterApi(credentials.Token, credentials.Secret)
+    _=api
+  }
 }
 
 // Twitter keys struct for reading from JSON
@@ -71,7 +77,8 @@ func getCredentials() (bool) {
     }
 
     verifier := r.Form["oauth_verifier"][0]
-    credentials, vals, err := anaconda.GetCredentials(tempCred, verifier)
+    var vals url.Values
+    credentials, vals, err = anaconda.GetCredentials(tempCred, verifier)
     _ = vals
     if err != nil {
       http.Error(w, fmt.Sprintf("Error! %s\n", err), http.StatusInternalServerError)
@@ -83,13 +90,16 @@ func getCredentials() (bool) {
       return
     }
 
-    api = anaconda.NewTwitterApi(credentials.Token, credentials.Secret)
-    _=api
-
     fmt.Fprintf(w, "Success! You can close this and go back to the terminal.")
+
+    go func() {
+      oAuthDone <- true
+    }()
   })
 
-  http.ListenAndServe(":9000", nil)
+  go func() {
+    http.ListenAndServe(":9000", nil)
+  }()
 
   return false // no error
 }
